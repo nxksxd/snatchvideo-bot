@@ -95,6 +95,7 @@ if [[ ! -t 0 ]]; then
   exec </dev/tty
 fi
 
+echo "Настройка локального Telegram Bot API..."
 API_ENV="$APP_DIR/telegram-bot-api.env"
 if [[ ! -f "$API_ENV" ]]; then
   TELEGRAM_API_ID=""
@@ -193,8 +194,10 @@ EOF
 
 systemctl daemon-reload
 systemctl enable docker telegram-bot-api.service "$SERVICE_NAME"
-systemctl restart docker telegram-bot-api.service
-for _ in {1..30}; do
+echo "Запуск локального Telegram Bot API (при первом запуске Docker скачает образ)..."
+systemctl restart telegram-bot-api.service
+echo "Ожидание готовности локального Telegram Bot API..."
+for _ in {1..120}; do
   if curl -fsS http://127.0.0.1:8081 >/dev/null 2>&1; then
     break
   fi

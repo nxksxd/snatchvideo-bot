@@ -28,6 +28,12 @@ class LocalBotApiInstallerTests(unittest.TestCase):
         self.assertIn("timeout 180", self.script)
         self.assertIn("Зависимости Python установлены", self.script)
 
+    def test_installer_reports_each_long_stage_and_does_not_restart_docker(self):
+        self.assertIn("Настройка локального Telegram Bot API", self.script)
+        self.assertIn("Запуск локального Telegram Bot API", self.script)
+        self.assertIn("Ожидание готовности локального Telegram Bot API", self.script)
+        self.assertNotIn("systemctl restart docker", self.script)
+
     def test_installer_prompts_for_api_credentials_without_echoing_hash(self):
         self.assertIn("TELEGRAM_API_ID", self.script)
         self.assertIn("Ожидается ввод в терминале", self.script)

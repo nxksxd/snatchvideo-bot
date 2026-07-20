@@ -16,7 +16,13 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y ca-certificates curl docker.io ffmpeg git python3 python3-venv
+apt-get install -y ca-certificates curl ffmpeg git python3 python3-venv
+
+if ! command -v docker >/dev/null; then
+  curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  sh /tmp/get-docker.sh
+  rm -f /tmp/get-docker.sh
+fi
 
 if ! command -v deno >/dev/null; then
   DENO_INSTALL=/usr/local/lib/deno curl -fsSL https://deno.land/install.sh | sh

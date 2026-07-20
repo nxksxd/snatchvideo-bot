@@ -11,6 +11,10 @@ class LocalBotApiInstallerTests(unittest.TestCase):
     def setUp(self):
         self.script = INSTALLER.read_text()
 
+    def test_installer_reuses_existing_docker_instead_of_forcing_ubuntu_package(self):
+        self.assertIn("if ! command -v docker", self.script)
+        self.assertNotIn("curl docker.io ffmpeg", self.script)
+
     def test_installer_prompts_for_api_credentials_without_echoing_hash(self):
         self.assertIn("TELEGRAM_API_ID", self.script)
         self.assertIn('read -r -s -p "Telegram API Hash', self.script)

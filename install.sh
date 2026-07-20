@@ -57,10 +57,6 @@ fi
 echo "Зависимости Python установлены."
 
 if [[ ! -f "$APP_DIR/.env" ]]; then
-  if [[ ! -t 0 ]]; then
-    exec </dev/tty
-  fi
-
   BOT_TOKEN=""
   ADMIN_ID=""
   while [[ -z "$BOT_TOKEN" ]]; do
@@ -89,10 +85,6 @@ text = text.replace("STATS_DB_PATH=/path/to/stats.db", "STATS_DB_PATH=/var/lib/s
 path.write_text(text)
 PY
   chmod 600 "$APP_DIR/.env"
-fi
-
-if [[ ! -t 0 ]]; then
-  exec </dev/tty
 fi
 
 echo "Настройка локального Telegram Bot API..."

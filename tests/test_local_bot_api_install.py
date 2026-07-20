@@ -34,6 +34,9 @@ class LocalBotApiInstallerTests(unittest.TestCase):
         self.assertIn("Ожидание готовности локального Telegram Bot API", self.script)
         self.assertNotIn("systemctl restart docker", self.script)
 
+    def test_installer_never_replaces_piped_stdin_with_tty(self):
+        self.assertNotIn("exec </dev/tty", self.script)
+
     def test_installer_prompts_for_api_credentials_without_echoing_hash(self):
         self.assertIn("TELEGRAM_API_ID", self.script)
         self.assertIn("Ожидается ввод в терминале", self.script)

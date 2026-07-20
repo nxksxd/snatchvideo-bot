@@ -1,6 +1,23 @@
 # SnatchVideo Bot
 
-Telegram-бот для скачивания видео и аудио по ссылке. Поддерживает выбор качества, ведёт статистику, ограничивает параллельные загрузки и автоматически удаляет временные файлы.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![aiogram](https://img.shields.io/badge/aiogram-3.26-2CA5E0?logo=telegram&logoColor=white)](https://docs.aiogram.dev/)
+[![yt--dlp](https://img.shields.io/badge/yt--dlp-2026.03-red)](https://github.com/yt-dlp/yt-dlp)
+[![Telegram Bot API](https://img.shields.io/badge/Telegram_Bot_API-local-26A5E4?logo=telegram&logoColor=white)](https://github.com/tdlib/telegram-bot-api)
+
+Production-ready Telegram-бот для скачивания видео и аудио по ссылке. Поддерживает выбор качества, файлы до 2000 МБ через локальный Telegram Bot API, статистику, ограничение параллельных задач и автоматическую очистку временных данных.
+
+## Навигация
+
+- [Возможности](#функционал)
+- [Поддерживаемые сервисы](#поддерживаемые-сервисы)
+- [Технологический стек](#технологический-стек)
+- [Архитектура](#архитектура)
+- [Требования к VPS](#требования-к-vps)
+- [Подробная установка](#подробная-установка-на-vps)
+- [Управление на VPS](#управление-на-vps)
+- [Настройка](#настройка)
+- [Безопасность](#безопасность)
 
 ## Поддерживаемые сервисы
 
@@ -39,17 +56,80 @@ Telegram-бот для скачивания видео и аудио по ссы
 - `/cancel` — отменить текущую загрузку.
 - `/restart` — перезапустить сценарий работы.
 
-## Stack
+## Технологический стек
 
-- Python 3.10+
-- aiogram 3 — Telegram Bot API и FSM.
-- yt-dlp — получение метаданных и скачивание медиа.
-- FFmpeg и FFprobe — объединение потоков, аудио и совместимость видео.
-- Deno — выполнение JavaScript-компонентов yt-dlp для YouTube.
-- SQLite — статистика пользователей и загрузок.
-- python-dotenv — конфигурация через `.env`.
-- asyncio — асинхронная обработка и контроль параллелизма.
-- systemd — production-запуск на VPS.
+### Приложение
+
+| Технология | Роль в проекте |
+|---|---|
+| Python 3.10+ | Основной язык приложения и асинхронной бизнес-логики. |
+| aiogram 3.26 | Telegram-команды, сообщения, callback-кнопки, FSM и polling. |
+| asyncio | Параллельная обработка пользователей, загрузок и фоновой очистки без блокировки бота. |
+| Pydantic | Проверка и типизация данных, используемых aiogram. |
+| python-dotenv | Загрузка настроек и секретов из `.env`. |
+
+### Медиа
+
+| Технология | Роль в проекте |
+|---|---|
+| yt-dlp | Получение метаданных, доступных форматов и скачивание видео/аудио с поддерживаемых платформ. |
+| FFmpeg | Объединение видео- и аудиопотоков, извлечение MP3, создание превью и перекодирование. |
+| FFprobe | Анализ кодеков, разрешения и совместимости готового файла с Telegram и iOS. |
+| Deno | JavaScript runtime для современных YouTube-проверок и EJS-компонентов yt-dlp. |
+
+### Данные и инфраструктура
+
+| Технология | Роль в проекте |
+|---|---|
+| SQLite WAL | Локальная статистика пользователей и загрузок с `busy_timeout` для конкурентного доступа. |
+| Local Telegram Bot API | Self-hosted API для отправки файлов до 2000 МБ вместо лимита официального API. |
+| Docker | Изолированный запуск локального `telegram-bot-api` без сборки TDLib вручную. |
+| systemd | Автозапуск, перезапуск после сбоя и управление ботом и локальным API. |
+| Bash | Повторяемая установка и обновление VPS одной командой. |
+| Git/GitHub | Доставка актуальной ветки `main` на сервер. |
+
+### Тестирование
+
+Проект использует стандартный `unittest`. Тесты проверяют обработчики, маршрутизацию, скачивание, cookies, оценку размера, совместимость медиа, повторы Telegram API, SQLite и контракт production-установщика.
+
+```bash
+python -m unittest discover -s tests
+```
+
+## Архитектура
+
+```text
+Пользователь Telegram
+        │
+        ▼
+Local Telegram Bot API :8081
+        │
+        ▼
+aiogram Dispatcher ──► handlers/
+        │                    │
+        │                    ├── команды и FSM
+        │                    ├── выбор качества
+        │                    └── прогресс и отмена
+        ▼
+DownloadManager ──► yt-dlp ──► Deno/EJS
+        │
+        ▼
+FFmpeg / FFprobe
+        │
+        ├──► временные файлы /var/lib/snatchvideo-bot/tmp
+        ├──► SQLite /var/lib/snatchvideo-bot/stats.db
+        └──► отправка готового файла через Local Bot API
+```
+
+Основные принципы:
+
+- бот работает через long polling и не требует публичного HTTP-порта;
+- локальный Telegram Bot API доступен только на `127.0.0.1:8081`;
+- одному пользователю разрешена одна активная загрузка;
+- общий параллелизм регулируется `DOWNLOAD_SEMAPHORE_LIMIT`;
+- временные каталоги привязаны к `job_id` и удаляются после завершения или по TTL;
+- SQLite хранит статистику отдельно от временных медиа;
+- два независимых systemd-сервиса позволяют перезапускать бот и локальный API отдельно.
 
 ## Требования к VPS
 
@@ -189,35 +269,20 @@ curl -fsSL "https://raw.githubusercontent.com/nxksxd/snatchvideo-bot/main/instal
 
 ## Управление на VPS
 
-Статус:
+| Действие | Команда |
+|---|---|
+| Статус обоих сервисов | `sudo systemctl status telegram-bot-api snatchvideo-bot --no-pager` |
+| Логи бота в реальном времени | `sudo journalctl -u snatchvideo-bot -f` |
+| Логи локального Bot API | `sudo journalctl -u telegram-bot-api -f` |
+| Перезапуск бота | `sudo systemctl restart snatchvideo-bot` |
+| Перезапуск локального API | `sudo systemctl restart telegram-bot-api` |
+| Остановка бота | `sudo systemctl stop snatchvideo-bot` |
+| Запуск бота | `sudo systemctl start snatchvideo-bot` |
+
+Обновление до актуальной версии:
 
 ```bash
-sudo systemctl status snatchvideo-bot
-```
-
-Логи:
-
-```bash
-sudo journalctl -u snatchvideo-bot -f
-```
-
-Перезапуск:
-
-```bash
-sudo systemctl restart snatchvideo-bot
-```
-
-Остановка и запуск:
-
-```bash
-sudo systemctl stop snatchvideo-bot
-sudo systemctl start snatchvideo-bot
-```
-
-Обновление:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/nxksxd/snatchvideo-bot/main/install.sh | sudo bash
+curl -fsSL "https://raw.githubusercontent.com/nxksxd/snatchvideo-bot/main/install.sh?$(date +%s)" | sudo bash
 ```
 
 ## Настройка

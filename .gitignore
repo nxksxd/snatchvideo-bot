@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Distribution / packaging
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+cookies*.txt
+youtube_cookies*.txt
+
+# Project artifacts
+bot.log
+*.log
+logs/
+stats.db
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Temp / runtime
+tmp/
+temp/
+*.tmp
+/tmp/video_download_bot/
+
+# yt-dlp / downloads
+downloads/
+*.part
+*.webp
+*.ytdl
+
+# Testing
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# OS
+*.bak
+*~

@@ -47,8 +47,13 @@ if [[ ! -f "$APP_DIR/.env" ]]; then
     read -r -s -p "Telegram Bot Token от @BotFather: " BOT_TOKEN || BOT_TOKEN=""
     echo
   done
-  while [[ ! "$ADMIN_ID" =~ ^[0-9]+$ ]]; do
-    read -r -p "Ваш Telegram ID (ADMIN_ID): " ADMIN_ID || ADMIN_ID=""
+  while true; do
+    read -r -p "Ваш Telegram ID (ADMIN_ID, только цифры): " ADMIN_ID || ADMIN_ID=""
+    ADMIN_ID="${ADMIN_ID//[[:space:]]/}"
+    if [[ "$ADMIN_ID" =~ ^[0-9]+$ ]]; then
+      break
+    fi
+    echo "Telegram ID должен содержать только цифры, без скобок и других символов. Повторите ввод." >&2
   done
 
   cp "$APP_DIR/.env.example" "$APP_DIR/.env"

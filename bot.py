@@ -72,6 +72,13 @@ async def periodic_cleanup():
             logger.info("🧹 Удалено %s устаревших временных директорий", removed)
 
 
+async def notify_admin_started(bot: Bot):
+    await bot.send_message(
+        chat_id=config.ADMIN_ID,
+        text="✅ SnatchVideo Bot успешно установлен и запущен.",
+    )
+
+
 async def main():
     await validate_startup()
 
@@ -103,6 +110,8 @@ async def main():
     )
 
     try:
+        await bot.get_me()
+        await notify_admin_started(bot)
         await dp.start_polling(bot, allowed_updates=["message", "callback_query"])
     finally:
         cleanup_task.cancel()

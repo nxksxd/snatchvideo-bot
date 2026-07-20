@@ -95,9 +95,7 @@ class DownloadManager:
             options["proxy"] = self._settings.rutube_proxy
 
         if utils.is_youtube_url(url):
-            options["extractor_args"] = {
-                "youtube": {"player_client": ["tv_embedded"]}
-            }
+            options["js_runtimes"] = {"deno": {"path": "/usr/local/bin/deno"}}
             options["remote_components"] = ["ejs:github"]
             if self._settings.youtube_cookies_file:
                 cookies_path = self._settings.youtube_cookies_file

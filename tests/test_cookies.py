@@ -60,12 +60,12 @@ class YoutubeCookiesOptionsTests(unittest.TestCase):
 
 
 class YoutubePlayerClientTests(unittest.TestCase):
-    def test_tv_embedded_player_set_for_youtube(self):
+    def test_deno_runtime_set_for_youtube(self):
         manager = DownloadManager(_settings(None), _FakeTempFileService())
         opts = manager._build_common_options("https://youtu.be/abc")
         self.assertEqual(
-            opts.get("extractor_args"),
-            {"youtube": {"player_client": ["tv_embedded"]}},
+            opts.get("js_runtimes"),
+            {"deno": {"path": "/usr/local/bin/deno"}},
         )
 
     def test_remote_components_ejs_for_youtube(self):

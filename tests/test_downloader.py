@@ -24,6 +24,15 @@ def _make_settings():
     return Settings.for_tests()
 
 
+class DownloadManagerOptionsTests(unittest.TestCase):
+    def test_youtube_explicitly_uses_installed_deno_runtime(self):
+        manager = DownloadManager(_make_settings(), _FakeTempFileService())
+
+        options = manager._build_common_options("https://youtu.be/example")
+
+        self.assertEqual(options["js_runtimes"], {"deno": {"path": "/usr/local/bin/deno"}})
+
+
 class DownloadManagerConcurrencyTests(unittest.TestCase):
     def test_second_download_for_same_user_raises(self):
         async def run():

@@ -12,6 +12,7 @@ from pathlib import Path
 
 from aiogram.enums import ParseMode
 from aiogram.exceptions import (
+    TelegramEntityTooLarge,
     TelegramNetworkError,
     TelegramRetryAfter,
     TelegramServerError,
@@ -90,6 +91,8 @@ class MediaSender:
                     wait, attempt + 1, retries + 1,
                 )
                 await asyncio.sleep(wait)
+            except TelegramEntityTooLarge:
+                raise
             except TelegramNetworkError as exc:
                 if attempt >= retries:
                     raise

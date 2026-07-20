@@ -7,6 +7,7 @@ import unittest
 os.environ.setdefault("TELEGRAM_BOT_TOKEN", "test-token")
 
 from aiogram.exceptions import (
+    TelegramEntityTooLarge,
     TelegramNetworkError,
     TelegramRetryAfter,
     TelegramServerError,
@@ -71,6 +72,17 @@ class SendWithRetryTests(unittest.TestCase):
         result = self._run(factory)
         self.assertEqual(result, "ok")
         self.assertEqual(calls["n"], 2)
+
+    def test_entity_too_large_is_not_retried(self):
+        calls = {"n": 0}
+
+        async def factory():
+            calls["n"] += 1
+            raise TelegramEntityTooLarge(method=_FakeMethod(), message="Request Entity Too Large")
+
+        with self.assertRaises(TelegramEntityTooLarge):
+            self._run(factory, retries=2)
+        self.assertEqual(calls["n"], 1)
 
     def test_gives_up_after_retries_and_reraises(self):
         async def factory():

@@ -15,8 +15,16 @@ if ! command -v apt-get >/dev/null; then
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update
-apt-get install -y ca-certificates curl ffmpeg git python3 python3-venv
+MISSING_PACKAGES=()
+command -v curl >/dev/null || MISSING_PACKAGES+=(curl ca-certificates)
+command -v ffmpeg >/dev/null || MISSING_PACKAGES+=(ffmpeg)
+command -v git >/dev/null || MISSING_PACKAGES+=(git)
+command -v python3 >/dev/null || MISSING_PACKAGES+=(python3)
+python3 -c 'import venv' >/dev/null 2>&1 || MISSING_PACKAGES+=(python3-venv)
+if (( ${#MISSING_PACKAGES[@]} )); then
+  apt-get update
+  apt-get install -y "${MISSING_PACKAGES[@]}"
+fi
 
 if ! command -v docker >/dev/null; then
   curl -fsSL https://get.docker.com -o /tmp/get-docker.sh

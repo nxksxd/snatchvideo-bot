@@ -15,6 +15,11 @@ class LocalBotApiInstallerTests(unittest.TestCase):
         self.assertIn("if ! command -v docker", self.script)
         self.assertNotIn("curl docker.io ffmpeg", self.script)
 
+    def test_installer_skips_apt_when_required_commands_are_already_installed(self):
+        self.assertIn("MISSING_PACKAGES=()", self.script)
+        self.assertIn('if (( ${#MISSING_PACKAGES[@]} )); then', self.script)
+        self.assertNotIn("apt-get install -y ca-certificates curl ffmpeg git python3 python3-venv", self.script)
+
     def test_installer_prompts_for_api_credentials_without_echoing_hash(self):
         self.assertIn("TELEGRAM_API_ID", self.script)
         self.assertIn('read -r -s -p "Telegram API Hash', self.script)

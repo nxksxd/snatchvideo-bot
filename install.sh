@@ -93,13 +93,17 @@ API_ENV="$APP_DIR/telegram-bot-api.env"
 if [[ ! -f "$API_ENV" ]]; then
   TELEGRAM_API_ID=""
   TELEGRAM_API_HASH=""
+  echo
   echo "Для файлов до 2000 МБ нужны api_id и api_hash с https://my.telegram.org/apps"
+  echo "Ожидается ввод в терминале. Установка не зависла."
   while [[ ! "$TELEGRAM_API_ID" =~ ^[0-9]+$ ]]; do
-    read -r -p "Telegram API ID (только цифры): " TELEGRAM_API_ID || TELEGRAM_API_ID=""
+    printf 'Telegram API ID (только цифры): ' > /dev/tty
+    read -r TELEGRAM_API_ID < /dev/tty || TELEGRAM_API_ID=""
   done
   while [[ -z "$TELEGRAM_API_HASH" ]]; do
-    read -r -s -p "Telegram API Hash (ввод скрыт): " TELEGRAM_API_HASH || TELEGRAM_API_HASH=""
-    echo
+    printf 'Telegram API Hash (ввод скрыт): ' > /dev/tty
+    read -r -s TELEGRAM_API_HASH < /dev/tty || TELEGRAM_API_HASH=""
+    printf '\n' > /dev/tty
   done
   printf 'TELEGRAM_API_ID=%s\nTELEGRAM_API_HASH=%s\n' "$TELEGRAM_API_ID" "$TELEGRAM_API_HASH" > "$API_ENV"
   chmod 600 "$API_ENV"

@@ -22,7 +22,9 @@ class LocalBotApiInstallerTests(unittest.TestCase):
 
     def test_installer_prompts_for_api_credentials_without_echoing_hash(self):
         self.assertIn("TELEGRAM_API_ID", self.script)
-        self.assertIn('read -r -s -p "Telegram API Hash', self.script)
+        self.assertIn("Ожидается ввод в терминале", self.script)
+        self.assertIn('read -r TELEGRAM_API_ID', self.script)
+        self.assertIn('read -r -s TELEGRAM_API_HASH', self.script)
 
     def test_installer_creates_loopback_only_local_api_service(self):
         self.assertIn("telegram-bot-api.service", self.script)

@@ -33,7 +33,9 @@ if ! command -v docker >/dev/null; then
 fi
 
 if ! command -v deno >/dev/null; then
-  DENO_INSTALL=/usr/local/lib/deno curl -fsSL https://deno.land/install.sh | sh
+  curl -fsSL https://deno.land/install.sh -o /tmp/install-deno.sh
+  DENO_INSTALL=/usr/local/lib/deno DENO_NO_UPDATE_CHECK=1 sh /tmp/install-deno.sh -y --no-modify-path
+  rm -f /tmp/install-deno.sh
   ln -sf /usr/local/lib/deno/bin/deno /usr/local/bin/deno
 fi
 

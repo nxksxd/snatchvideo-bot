@@ -20,6 +20,10 @@ class LocalBotApiInstallerTests(unittest.TestCase):
         self.assertIn('if (( ${#MISSING_PACKAGES[@]} )); then', self.script)
         self.assertNotIn("apt-get install -y ca-certificates curl ffmpeg git python3 python3-venv", self.script)
 
+    def test_deno_install_is_non_interactive(self):
+        self.assertIn("DENO_NO_UPDATE_CHECK=1", self.script)
+        self.assertIn("-y", self.script)
+
     def test_dependency_install_has_timeout_and_visible_completion_marker(self):
         self.assertIn("timeout 180", self.script)
         self.assertIn("Зависимости Python установлены", self.script)

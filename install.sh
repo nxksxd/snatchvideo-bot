@@ -47,8 +47,12 @@ else
 fi
 
 python3 -m venv "$APP_DIR/venv"
-"$APP_DIR/venv/bin/pip" install --upgrade pip
-"$APP_DIR/venv/bin/pip" install -r "$APP_DIR/requirements.txt"
+echo "Проверка зависимостей Python..."
+if ! timeout 180 "$APP_DIR/venv/bin/pip" install --disable-pip-version-check --no-input -q -r "$APP_DIR/requirements.txt"; then
+  echo "Не удалось установить зависимости Python за 180 секунд." >&2
+  exit 1
+fi
+echo "Зависимости Python установлены."
 
 if [[ ! -f "$APP_DIR/.env" ]]; then
   if [[ ! -t 0 ]]; then

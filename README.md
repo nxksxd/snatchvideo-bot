@@ -83,6 +83,9 @@ curl -fsSL https://raw.githubusercontent.com/nxksxd/snatchvideo-bot/main/install
 
 1. Telegram Bot Token от `@BotFather` — ввод скрыт.
 2. Ваш Telegram ID для `ADMIN_ID`.
+3. Telegram `api_id` и `api_hash` с [my.telegram.org/apps](https://my.telegram.org/apps) — нужны локальному Bot API для отправки файлов до 2000 МБ. `api_hash` вводится скрыто.
+
+`api_id` и `api_hash` создаются один раз: войдите на `my.telegram.org`, откройте `API development tools`, создайте приложение с любым названием и скопируйте значения непосредственно в терминал VPS. Не отправляйте `api_hash` в чат и не публикуйте его.
 
 Затем он автоматически:
 
@@ -185,11 +188,21 @@ INSTAGRAM_COOKIES_FILE=/opt/snatchvideo-bot/secrets/instagram.txt
 
 Официальный Telegram Bot API ограничивает отправку больших файлов. Значение `MAX_FILE_SIZE_MB=2000` само по себе не отменяет лимит API.
 
-Для больших файлов нужен self-hosted `telegram-bot-api` и параметры:
+Установщик автоматически запускает self-hosted `telegram-bot-api` в отдельном Docker-контейнере, привязанном только к `127.0.0.1:8081`, и выставляет:
 
 ```env
 USE_LOCAL_BOT_API=true
-TELEGRAM_API_BASE=http://localhost:8081
+TELEGRAM_API_BASE=http://127.0.0.1:8081
+MAX_FILE_SIZE_MB=2000
+```
+
+Данные локального API хранятся в `/var/lib/telegram-bot-api`, а его секреты — в `/opt/snatchvideo-bot/telegram-bot-api.env` с правами `600`.
+
+Проверка:
+
+```bash
+sudo systemctl status telegram-bot-api snatchvideo-bot
+sudo journalctl -u telegram-bot-api -n 50 --no-pager
 ```
 
 Без локального Bot API уменьшите `MAX_FILE_SIZE_MB` до значения, которое принимает официальный API.

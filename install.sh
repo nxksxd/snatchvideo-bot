@@ -118,13 +118,15 @@ Requires=docker.service
 
 [Service]
 Type=simple
-EnvironmentFile=$API_ENV
 ExecStartPre=-/usr/bin/docker rm -f snatchvideo-telegram-bot-api
 # Только loopback: 127.0.0.1:8081:8081
 ExecStart=/usr/bin/docker run --name snatchvideo-telegram-bot-api --rm --network host \
+  --env-file "$API_ENV" \
+  -e TELEGRAM_HTTP_IP_ADDRESS=127.0.0.1 \
+  -e TELEGRAM_HTTP_PORT=8081 \
+  -e TELEGRAM_LOCAL=1 \
   -v /var/lib/telegram-bot-api:/var/lib/telegram-bot-api \
   aiogram/telegram-bot-api:latest \
-  --api-id=\${TELEGRAM_API_ID} --api-hash=\${TELEGRAM_API_HASH} \
   --http-ip-address=127.0.0.1 --http-port=8081 --local \
   --dir=/var/lib/telegram-bot-api --temp-dir=/var/lib/telegram-bot-api/tmp
 ExecStop=/usr/bin/docker stop snatchvideo-telegram-bot-api
@@ -192,6 +194,10 @@ echo "Ожидание готовности локального Telegram Bot AP
 for _ in {1..120}; do
   if curl -fsS http://127.0.0.1:8081 >/dev/null 2>&1; then
     break
+  fi
+  if systemctl is-failed --quiet telegram-bot-api.service; then
+    journalctl -u telegram-bot-api.service -n 100 --no-pager
+    exit 1
   fi
   sleep 1
 done

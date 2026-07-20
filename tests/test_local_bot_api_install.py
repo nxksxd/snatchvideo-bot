@@ -48,6 +48,12 @@ class LocalBotApiInstallerTests(unittest.TestCase):
         self.assertIn("--http-port=8081", self.script)
         self.assertIn("--local", self.script)
         self.assertIn("127.0.0.1:8081:8081", self.script)
+        self.assertIn('--env-file "$API_ENV"', self.script)
+        self.assertNotIn("--api-id=", self.script)
+
+    def test_readiness_wait_stops_early_when_service_fails(self):
+        self.assertIn('systemctl is-failed --quiet telegram-bot-api.service', self.script)
+        self.assertIn('journalctl -u telegram-bot-api.service -n 100 --no-pager', self.script)
 
     def test_installer_enables_local_api_in_bot_environment(self):
         self.assertIn("'USE_LOCAL_BOT_API': 'true'", self.script)

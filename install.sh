@@ -192,7 +192,7 @@ echo "Запуск локального Telegram Bot API (при первом з
 systemctl restart telegram-bot-api.service
 echo "Ожидание готовности локального Telegram Bot API..."
 for _ in {1..120}; do
-  if curl -fsS http://127.0.0.1:8081 >/dev/null 2>&1; then
+  if curl -sS -o /dev/null http://127.0.0.1:8081 2>/dev/null; then
     break
   fi
   if systemctl is-failed --quiet telegram-bot-api.service; then
@@ -201,7 +201,7 @@ for _ in {1..120}; do
   fi
   sleep 1
 done
-if ! curl -fsS http://127.0.0.1:8081 >/dev/null 2>&1; then
+if ! curl -sS -o /dev/null http://127.0.0.1:8081 2>/dev/null; then
   journalctl -u telegram-bot-api.service -n 100 --no-pager
   exit 1
 fi

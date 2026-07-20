@@ -51,6 +51,10 @@ class LocalBotApiInstallerTests(unittest.TestCase):
         self.assertIn('--env-file "$API_ENV"', self.script)
         self.assertNotIn("--api-id=", self.script)
 
+    def test_readiness_accepts_any_http_response_from_api_root(self):
+        self.assertIn("curl -sS -o /dev/null http://127.0.0.1:8081", self.script)
+        self.assertNotIn("curl -fsS http://127.0.0.1:8081", self.script)
+
     def test_readiness_wait_stops_early_when_service_fails(self):
         self.assertIn('systemctl is-failed --quiet telegram-bot-api.service', self.script)
         self.assertIn('journalctl -u telegram-bot-api.service -n 100 --no-pager', self.script)

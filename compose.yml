@@ -1,0 +1,57 @@
+services:
+  telegram-bot-api:
+    image: aiogram/telegram-bot-api:latest
+    container_name: snatchvideo-telegram-bot-api
+    restart: unless-stopped
+    env_file:
+      - telegram-bot-api.env
+    environment:
+      TELEGRAM_LOCAL: "1"
+    volumes:
+      - telegram-api-data:/var/lib/telegram-bot-api
+    networks:
+      - video-bot
+    cpus: 1.0
+    mem_limit: 1g
+    pids_limit: 256
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8081 || [ $$? -eq 8 ]"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  video-bot:
+    build: .
+    container_name: snatchvideo-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      USE_LOCAL_BOT_API: "true"
+      TELEGRAM_API_BASE: "http://telegram-bot-api:8081"
+      MAX_FILE_SIZE_MB: 2000
+      DOWNLOAD_SEMAPHORE_LIMIT: 3
+      TEMP_DIR: /var/lib/snatchvideo-bot/tmp
+      STATS_DB_PATH: /var/lib/snatchvideo-bot/stats.db
+    volumes:
+      - video-data:/var/lib/snatchvideo-bot
+      - video-temp:/var/lib/snatchvideo-bot/tmp
+      - ./secrets:/run/secrets:ro
+    networks:
+      - video-bot
+    cpus: 2.0
+    mem_limit: 4g
+    pids_limit: 512
+    depends_on:
+      telegram-bot-api:
+        condition: service_healthy
+
+networks:
+  video-bot:
+    name: snatchvideo-network
+
+volumes:
+  video-data:
+  video-temp:
+  telegram-api-data:

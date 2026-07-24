@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+telegram-bot-api.env
+venv
+.venv
+__pycache__
+*.pyc
+*.db
+*.log
+secrets
+cookies*.txt
+tests

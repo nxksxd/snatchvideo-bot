@@ -24,6 +24,11 @@ class DockerDeploymentTests(unittest.TestCase):
     def test_local_api_healthcheck_probes_tcp_port(self):
         self.assertIn('["CMD", "nc", "-z", "127.0.0.1", "8081"]', self.compose)
 
+    def test_volume_init_grants_non_root_bot_write_access(self):
+        self.assertIn("init-video-volumes:", self.compose)
+        self.assertIn("chown -R 10001:10001 /data /tmp-data", self.compose)
+        self.assertIn("condition: service_completed_successfully", self.compose)
+
     def test_services_are_private_and_persistent(self):
         self.assertNotIn("ports:", self.compose)
         self.assertIn("video-temp:/var/lib/snatchvideo-bot/tmp", self.compose)

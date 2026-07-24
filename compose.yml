@@ -21,6 +21,14 @@ services:
       retries: 10
       start_period: 30s
 
+  init-video-volumes:
+    image: alpine:3.22
+    restart: "no"
+    command: ["sh", "-c", "chown -R 10001:10001 /data /tmp-data"]
+    volumes:
+      - video-data:/data
+      - video-temp:/tmp-data
+
   video-bot:
     build: .
     container_name: snatchvideo-bot
@@ -44,6 +52,8 @@ services:
     mem_limit: 4g
     pids_limit: 512
     depends_on:
+      init-video-volumes:
+        condition: service_completed_successfully
       telegram-bot-api:
         condition: service_healthy
 

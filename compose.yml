@@ -15,7 +15,7 @@ services:
     mem_limit: 1g
     pids_limit: 256
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8081 || [ $$? -eq 8 ]"]
+      test: ["CMD", "nc", "-z", "127.0.0.1", "8081"]
       interval: 15s
       timeout: 5s
       retries: 10

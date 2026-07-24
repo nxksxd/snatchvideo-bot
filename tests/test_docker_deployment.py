@@ -21,6 +21,9 @@ class DockerDeploymentTests(unittest.TestCase):
         self.assertIn("DOWNLOAD_SEMAPHORE_LIMIT: 3", self.compose)
         self.assertIn("MAX_FILE_SIZE_MB: 2000", self.compose)
 
+    def test_local_api_healthcheck_probes_tcp_port(self):
+        self.assertIn('["CMD", "nc", "-z", "127.0.0.1", "8081"]', self.compose)
+
     def test_services_are_private_and_persistent(self):
         self.assertNotIn("ports:", self.compose)
         self.assertIn("video-temp:/var/lib/snatchvideo-bot/tmp", self.compose)

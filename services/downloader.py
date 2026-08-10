@@ -137,7 +137,8 @@ class DownloadManager:
             {
                 "outtmpl": output_template,
                 "progress_hooks": [progress_hook],
-                "sleep_interval": random.randint(2, 5),
+                "sleep_interval": 0,
+                "concurrent_fragment_downloads": 4,
             }
         )
 

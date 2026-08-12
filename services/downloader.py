@@ -283,10 +283,16 @@ class DownloadManager:
                     info = ydl.extract_info(job.url, download=True)
                     file_path = self._resolve_downloaded_file(job_dir, ydl, info, job.choice)
                 break
-            except SlowDownloadCancelled:
+            except (SlowDownloadCancelled, yt_dlp.utils.DownloadError) as exc:
+                is_403 = "403" in str(exc) or "Forbidden" in str(exc)
+                if not isinstance(exc, SlowDownloadCancelled) and not is_403:
+                    raise
                 if attempt + 1 >= len(clients):
                     raise
-                logger.warning("Медленная загрузка: повтор через YouTube client web_safari")
+                logger.warning(
+                    "YouTube download failed (%s): retry via client web_safari",
+                    "slow speed" if isinstance(exc, SlowDownloadCancelled) else "HTTP 403",
+                )
                 for path in job_dir.glob("*"):
                     path.unlink(missing_ok=True)
         else:

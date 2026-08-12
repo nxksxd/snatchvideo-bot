@@ -8,6 +8,7 @@ import asyncio
 import logging
 import random
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Awaitable, Callable
@@ -230,9 +231,27 @@ class DownloadManager:
         job_dir = self._temp_file_service.create_job_dir(job.job_id)
         output_template = str(job_dir / "%(title)s.%(ext)s")
 
+        slow_started_at: float | None = None
+        slow_speed_limit = self._settings.slow_download_speed
+        slow_speed_window = self._settings.slow_download_window
+
         def progress_hook(data: dict):
+            nonlocal slow_started_at
             if handle.cancel_event.is_set():
                 raise DownloadCancelled("cancelled by user")
+
+            if data.get("status") == "downloading":
+                speed = data.get("speed") or 0
+                now = time.monotonic()
+                if speed < slow_speed_limit:
+                    slow_started_at = slow_started_at or now
+                    if now - slow_started_at >= slow_speed_window:
+                        raise DownloadCancelled(
+                            f"download speed below {slow_speed_limit} B/s "
+                            f"for {slow_speed_window} seconds"
+                        )
+                else:
+                    slow_started_at = None
 
             if data.get("status") != "downloading" or progress_callback is None:
                 return

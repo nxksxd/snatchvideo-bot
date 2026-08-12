@@ -89,6 +89,8 @@ class Settings:
     instagram_cookies_file: Path | None
     max_file_size: int
     download_timeout: int
+    slow_download_speed: int
+    slow_download_window: int
     session_timeout: int
     download_semaphore_limit: int
     cleanup_interval: int
@@ -122,6 +124,8 @@ class Settings:
             instagram_cookies_file=None,
             max_file_size=2000 * 1024 * 1024,
             download_timeout=600,
+            slow_download_speed=100 * 1024,
+            slow_download_window=45,
             session_timeout=1200,
             download_semaphore_limit=3,
             cleanup_interval=30 * 60,
@@ -166,6 +170,8 @@ class Settings:
             instagram_cookies_file=instagram_cookies_file,
             max_file_size=_parse_int("MAX_FILE_SIZE_MB", 2000) * 1024 * 1024,
             download_timeout=_parse_int("DOWNLOAD_TIMEOUT", 600),
+            slow_download_speed=_parse_int("SLOW_DOWNLOAD_SPEED", 100 * 1024),
+            slow_download_window=_parse_int("SLOW_DOWNLOAD_WINDOW", 45),
             session_timeout=_parse_int("SESSION_TIMEOUT", 1200),
             download_semaphore_limit=_parse_int("DOWNLOAD_SEMAPHORE_LIMIT", 3),
             cleanup_interval=_parse_int("CLEANUP_INTERVAL", 30 * 60),

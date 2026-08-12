@@ -24,7 +24,11 @@ from handlers.session_utils import (
 )
 from handlers.states import DownloadStates
 from models import DownloadJob
-from services.downloader import DownloadAlreadyInProgress, DownloadCancelled
+from services.downloader import (
+    DownloadAlreadyInProgress,
+    DownloadCancelled,
+    SlowDownloadCancelled,
+)
 from services.media_info import build_media_info_result
 import utils
 
@@ -223,6 +227,14 @@ async def quality_choice(callback: CallbackQuery, state: FSMContext, bot: Bot):
         await cleanup_bot_messages(bot, state, chat_id)
         await callback.message.answer(
             "⏳ У вас уже идёт загрузка. Дождитесь её завершения или отмените через /cancel."
+        )
+    except SlowDownloadCancelled:
+        logger.warning("Загрузка %s остановлена из-за низкой скорости", job.job_id)
+        await stop_progress(state)
+        await cleanup_bot_messages(bot, state, chat_id)
+        await callback.message.answer(
+            "⚠️ YouTube ограничил скорость загрузки.\n"
+            "Попробуйте повторить попытку или выбрать качество ниже."
         )
     except DownloadCancelled:
         logger.info("Загрузка %s отменена пользователем %s", job.job_id, user_id)

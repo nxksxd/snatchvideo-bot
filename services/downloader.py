@@ -42,6 +42,10 @@ class DownloadCancelled(Exception):
     """Загрузка была отменена пользователем."""
 
 
+class SlowDownloadCancelled(DownloadCancelled):
+    """Загрузка остановлена из-за устойчиво низкой скорости."""
+
+
 class DownloadAlreadyInProgress(Exception):
     """У пользователя уже есть активная загрузка."""
 
@@ -246,7 +250,7 @@ class DownloadManager:
                 if speed < slow_speed_limit:
                     slow_started_at = slow_started_at or now
                     if now - slow_started_at >= slow_speed_window:
-                        raise DownloadCancelled(
+                        raise SlowDownloadCancelled(
                             f"download speed below {slow_speed_limit} B/s "
                             f"for {slow_speed_window} seconds"
                         )

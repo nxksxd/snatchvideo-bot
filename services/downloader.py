@@ -272,7 +272,7 @@ class DownloadManager:
             future = asyncio.run_coroutine_threadsafe(progress_callback(progress), loop)
             future.add_done_callback(_log_progress_error)
 
-        clients = [None, "web_safari"] if utils.is_youtube_url(job.url) else [None]
+        clients = [None, "android"] if utils.is_youtube_url(job.url) else [None]
         for attempt, youtube_client in enumerate(clients):
             try:
                 with yt_dlp.YoutubeDL(
@@ -290,7 +290,7 @@ class DownloadManager:
                 if attempt + 1 >= len(clients):
                     raise
                 logger.warning(
-                    "YouTube download failed (%s): retry via client web_safari",
+                    "YouTube download failed (%s): retry via client android",
                     "slow speed" if isinstance(exc, SlowDownloadCancelled) else "HTTP 403",
                 )
                 for path in job_dir.glob("*"):

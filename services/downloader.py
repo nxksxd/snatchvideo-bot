@@ -82,7 +82,7 @@ class DownloadManager:
         with yt_dlp.YoutubeDL(self._build_info_options(url)) as ydl:
             return ydl.extract_info(url, download=False)
 
-    def _build_common_options(self, url: str) -> dict:
+    def _build_common_options(self, url: str, youtube_client: str | None = None) -> dict:
         options = {
             "retries": 10,
             "extractor_retries": 10,
@@ -102,6 +102,8 @@ class DownloadManager:
         if utils.is_youtube_url(url):
             options["js_runtimes"] = {"deno": {"path": "/usr/local/bin/deno"}}
             options["remote_components"] = ["ejs:github"]
+            if youtube_client:
+                options["extractor_args"] = {"youtube": {"player_client": [youtube_client]}}
             if self._settings.youtube_cookies_file:
                 cookies_path = self._settings.youtube_cookies_file
                 if cookies_path.is_file():
@@ -136,8 +138,9 @@ class DownloadManager:
         job: DownloadJob,
         output_template: str,
         progress_hook,
+        youtube_client: str | None = None,
     ) -> dict:
-        options = self._build_common_options(job.url)
+        options = self._build_common_options(job.url, youtube_client=youtube_client)
         options.update(
             {
                 "outtmpl": output_template,
@@ -269,19 +272,25 @@ class DownloadManager:
             future = asyncio.run_coroutine_threadsafe(progress_callback(progress), loop)
             future.add_done_callback(_log_progress_error)
 
-        try:
-            with yt_dlp.YoutubeDL(
-                self._build_download_options(job, output_template, progress_hook)
-            ) as ydl:
-                info = ydl.extract_info(job.url, download=True)
-                file_path = self._resolve_downloaded_file(job_dir, ydl, info, job.choice)
-        except yt_dlp.utils.DownloadError as exc:
-            if handle.cancel_event.is_set():
-                raise DownloadCancelled("cancelled by user") from exc
-            raise
-        except DownloadCancelled:
-            raise
-
+        clients = [None, "web_safari"] if utils.is_youtube_url(job.url) else [None]
+        for attempt, youtube_client in enumerate(clients):
+            try:
+                with yt_dlp.YoutubeDL(
+                    self._build_download_options(
+                        job, output_template, progress_hook, youtube_client=youtube_client
+                    )
+                ) as ydl:
+                    info = ydl.extract_info(job.url, download=True)
+                    file_path = self._resolve_downloaded_file(job_dir, ydl, info, job.choice)
+                break
+            except SlowDownloadCancelled:
+                if attempt + 1 >= len(clients):
+                    raise
+                logger.warning("Медленная загрузка: повтор через YouTube client web_safari")
+                for path in job_dir.glob("*"):
+                    path.unlink(missing_ok=True)
+        else:
+            raise RuntimeError("download attempts exhausted")
         if handle.cancel_event.is_set():
             raise DownloadCancelled("cancelled by user")
 

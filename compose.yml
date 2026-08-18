@@ -46,6 +46,7 @@ services:
       - video-data:/var/lib/snatchvideo-bot
       - video-temp:/var/lib/snatchvideo-bot/tmp
       - ./secrets:/run/secrets:ro
+      - ./secrets/youtube-cookies.txt:/run/secrets/youtube-cookies.txt:rw
     networks:
       - video-bot
     cpus: 2.0

@@ -85,6 +85,7 @@ class Settings:
     token: str
     admin_id: int
     rutube_proxy: str | None
+    youtube_proxy: str | None
     youtube_cookies_file: Path | None
     instagram_cookies_file: Path | None
     max_file_size: int
@@ -120,6 +121,7 @@ class Settings:
             token="test-token",
             admin_id=0,
             rutube_proxy=None,
+            youtube_proxy=None,
             youtube_cookies_file=None,
             instagram_cookies_file=None,
             max_file_size=2000 * 1024 * 1024,
@@ -166,6 +168,7 @@ class Settings:
             token=_require_env("TELEGRAM_BOT_TOKEN"),
             admin_id=_parse_int("ADMIN_ID", 0),
             rutube_proxy=os.getenv("RUTUBE_PROXY", "").strip() or None,
+            youtube_proxy=os.getenv("YOUTUBE_PROXY", "").strip() or None,
             youtube_cookies_file=youtube_cookies_file,
             instagram_cookies_file=instagram_cookies_file,
             max_file_size=_parse_int("MAX_FILE_SIZE_MB", 2000) * 1024 * 1024,
